@@ -1,0 +1,24 @@
+# Carpeta que contiene Experiment_1/ y Experiment_2/ (ver README, sección Datos)
+DATA_DIR: data/raw
+
+# Figuras y tablas generadas
+OUTPUT_DIR: outputs
+
+# Frecuencia de muestreo nominal de la Muse (Hz)
+FS: 256
+
+# Canales de EEG de la Muse (el canal "Right AUX" no se usa)
+CANALES: [TP9, AF7, AF8, TP10]
+
+# Bandas de frecuencia (Hz)
+BANDAS:
+  delta: [1, 4]
+  theta: [4, 8]
+  alfa: [8, 13]
+  beta: [13, 30]
+
+# Frecuencia de la red eléctrica (el estudio se hizo en EE.UU.)
+F_LINEA: 60
+
+# Semilla para que los resultados sean reproducibles
+SEED: 13

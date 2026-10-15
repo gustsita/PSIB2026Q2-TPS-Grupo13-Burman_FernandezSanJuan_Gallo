@@ -1,0 +1,17 @@
+# Núcleo numérico y datos
+numpy
+scipy
+pandas
+
+# Modelo AR (Yule-Walker) y estadística
+statsmodels
+
+# Gráficos
+matplotlib
+
+# Configuración (config.yaml)
+PyYAML
+
+# Notebooks
+jupyterlab
+ipykernel

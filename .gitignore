@@ -1,0 +1,13 @@
+# Entorno
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+
+# Datos y resultados (pesados, no se suben)
+data/raw/*
+!data/raw/.gitkeep
+outputs/*
+!outputs/.gitkeep
+*.zip
