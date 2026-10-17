@@ -25,6 +25,25 @@ print("Dependencias: OK")
 from eeg_nback import datos  # noqa: E402
 from eeg_nback.config import load_config  # noqa: E402
 
+def extremos_eeg(ruta):
+    """Primer y último timestamp del EEG, leyendo solo el principio y el final del archivo.
+
+    Sirve para detectar descargas cortadas sin cargar los ~70 MB. Devuelve None si no se
+    pueden leer.
+    """
+    try:
+        with open(ruta, "rb") as f:
+            f.readline()                                   # encabezado
+            primero = float(f.readline().split(b",")[0])
+            f.seek(0, 2)
+            f.seek(max(0, f.tell() - 4096))
+            lineas = [l for l in f.read().splitlines() if l.count(b",") == 5]
+            ultimo = float(lineas[-1].split(b",")[0])
+        return primero, ultimo
+    except (ValueError, IndexError):
+        return None
+
+
 cfg = load_config()
 try:
     sujetos = datos.listar_sujetos()
@@ -47,7 +66,13 @@ for _, s in sujetos.iterrows():
         print(f"  {s.sujeto}: {e}")
         problemas += 1
         continue
-    estado = "OK" if ses["dentro"].all() else "estímulos fuera de los tags"
+    t_eeg = extremos_eeg(s.ruta / "EEG_recording.csv")
+    if not ses["dentro"].all():
+        estado = "estímulos fuera de los tags"
+    elif t_eeg is None or t_eeg[0] > ses["tag_ini"].min() or t_eeg[1] < ses["tag_fin"].max():
+        estado = "el EEG no cubre todas las sesiones (¿descarga incompleta? volver a correr descargar_datos.py)"
+    else:
+        estado = "OK"
     problemas += estado != "OK"
     print(f"  {s.sujeto}: {len(ses)} sesiones ({', '.join(ses.condicion)}) – {estado}")
 
