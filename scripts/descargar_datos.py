@@ -15,6 +15,7 @@ python.org en macOS suele fallar al verificar los certificados SSL.
 
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -37,9 +38,18 @@ def tamano_remoto(url):
     return int(largos[-1]) if largos else -1
 
 
-def bajar(url, destino):
-    """Baja url a destino; -C - continúa una descarga cortada."""
-    subprocess.run(["curl", "-L", "--fail", "-C", "-", "-#", "-o", str(destino), url], check=True)
+def bajar(url, destino, intentos=20):
+    """Baja url a destino. PhysioNet corta conexiones largas: si se corta, reintenta
+    continuando desde donde quedó (-C -) hasta que el archivo tenga el tamaño completo."""
+    total = tamano_remoto(url)
+    for intento in range(1, intentos + 1):
+        subprocess.run(["curl", "-L", "--fail", "-C", "-", "-#", "-o", str(destino), url])
+        actual = destino.stat().st_size if destino.exists() else 0
+        if actual == total:
+            return
+        print(f"    se cortó en {actual / 1e6:.1f} / {total / 1e6:.1f} MB; reintento {intento}/{intentos}")
+        time.sleep(5)
+    sys.exit(f"No se pudo completar {destino.name}. Volver a correr el script: continúa desde donde quedó.")
 
 
 def main(sujetos):
