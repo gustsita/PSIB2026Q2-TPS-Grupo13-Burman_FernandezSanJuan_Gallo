@@ -70,16 +70,32 @@ def lms_linea(x, fs, f_linea=60.0, mu=1e-3):
 
     Devuelve (e, w): la señal limpia (error) y la historia de los pesos (n × 2),
     que sirve para ver la convergencia.
-
-    TODO:
-    - x = x − media;
-    - n = np.arange(len(x)); r = columnas cos y sin de 2π·f_linea·n/fs;
-    - loop sobre las muestras: y = w @ r[k]; e[k] = x[k] − y; w = w + 2·mu·e[k]·r[k];
-      guardar w en cada paso.
-    - (Con 1,4 millones de muestras el loop en Python tarda unos segundos por canal;
-      está bien. Si molesta, probar primero con una sesión.)
     """
-    raise NotImplementedError
+    x = np.asarray(x, dtype=float)
+    x = x - x.mean()
+    n = np.arange(len(x))
+    r1 = np.cos(2 * np.pi * f_linea * n / fs)
+    r2 = np.sin(2 * np.pi * f_linea * n / fs)
+
+    e = np.empty_like(x)
+    w = np.empty((len(x), 2))
+    w1 = w2 = 0.0
+    # Loop con escalares de Python (más rápido que operar con arrays de 2 elementos)
+    for k, (xk, a, b) in enumerate(zip(x.tolist(), r1.tolist(), r2.tolist())):
+        ek = xk - (w1 * a + w2 * b)     # e[k] = x[k] − y[k]
+        w1 += 2 * mu * ek * a           # w ← w + 2μ·e[k]·r[k]
+        w2 += 2 * mu * ek * b
+        e[k] = ek
+        w[k] = w1, w2
+    return e, w
+
+
+def filtrar(x, fs, sos, f_linea=60.0, mu=1e-3):
+    """Cadena completa sobre un tramo crudo (muestras × canales): LMS en cada canal y
+    después el pasa banda. Devuelve un array del mismo tamaño que x."""
+    x = np.asarray(x, dtype=float)
+    limpia = np.column_stack([lms_linea(x[:, j], fs, f_linea, mu)[0] for j in range(x.shape[1])])
+    return aplicar_pasabanda(limpia, sos)
 
 
 def potencia_relativa_en(x, fs, f0, ancho=1.0, vecinos=(3.0, 6.0)):
