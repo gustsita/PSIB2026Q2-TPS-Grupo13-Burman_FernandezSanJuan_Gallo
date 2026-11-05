@@ -15,6 +15,7 @@ scripts/
     descargar_datos.py    # baja de PhysioNet solo los archivos que usamos
     check_env.py          # verifica dependencias, datos y sincronización
     generar_deflexiones.py # genera la tabla de la sección 4 del Notebook 03
+    prueba_ica.py         # prueba de ICA para las deflexiones (docs/DECISIONES.md)
 src/eeg_nback/
     config.py             # lee config.yaml
     datos.py              # Parte 0: carga del EEG, sesiones, bloques y respuestas del n-back

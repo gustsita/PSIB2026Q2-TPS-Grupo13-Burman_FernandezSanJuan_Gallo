@@ -147,9 +147,50 @@ La medición original no estaba mal, pero se hizo en un solo sujeto, B1, que es 
 
 ## Preguntas probables en la defensa
 
-**¿Por qué no usaron ICA para sacar los parpadeos?** Con 4 canales hay muy pocas componentes para separar fuentes, y la profe nos pidió acotar el análisis. Es una decisión de criterio: no lo probamos con los datos.
+**¿Por qué no usaron ICA para sacar los parpadeos?**
 
-**¿Por qué no detectan QRS ni analizan HRV?** El trabajo se centra en el EEG. Esos temas son propios del ECG, y este dataset no lo tiene. Trae pulso (PPG) de las pulseras, que permitiría un análisis parecido, pero quedó fuera del alcance.
+> Probamos ICA en los 20 sujetos. Recuperaba épocas en TP9 y TP10, pero quitaba entre 36 y 49 % de beta, más de lo que aportan las deflexiones, y con 4 canales no podíamos asegurar que no estuviéramos sacando actividad cerebral. Por eso lo descartamos y usamos el rechazo de épocas.
+
+La prueba está en `scripts/prueba_ica.py`. No forma parte del pipeline: solo respalda esta decisión.
+
+*Qué es ICA.* ICA (análisis de componentes independientes) no se vio en clase: solo aparece nombrado en una diapositiva de EEG2, entre las técnicas multicanal.
+
+Cada electrodo registra una mezcla de varias fuentes, como la actividad cerebral, los parpadeos y el músculo. ICA supone que esas fuentes son independientes entre sí y que cada canal es una suma de ellas con distintos pesos:
+
+$$\mathbf{x}(t) = \mathbf{A}\,\mathbf{s}(t)$$
+
+donde $\mathbf{x}$ son los canales medidos, $\mathbf{s}$ las fuentes y $\mathbf{A}$ la matriz de mezcla, que no se conoce. ICA estima una matriz que deshace esa mezcla y devuelve las fuentes.
+
+Para sacar un artefacto se siguen tres pasos:
+
+1. Se separan los canales en componentes.
+2. Se identifica la componente del artefacto y se la pone en cero.
+3. Se reconstruyen los canales con las componentes que quedan.
+
+Es como grabar una fiesta con 4 micrófonos: cada uno capta a todos, pero con distinto volumen, e ICA intenta recuperar cada voz por separado. Con 4 canales se pueden separar como máximo 4 fuentes. Por eso, si una componente mezcla artefacto y actividad cerebral, al anularla se pierden las dos.
+
+No hay que confundirlo con el promediado de potenciales evocados, que se vio en clase. El promediado usa muchas repeticiones de un mismo estímulo; ICA usa varios canales al mismo tiempo y trabaja sobre la señal continua.
+
+*Qué probamos.*
+
+Se anuló en cada sesión la componente más correlacionada con la media de TP9 y TP10:
+
+| Medida (mediana entre sujetos) | TP9 | TP10 | AF7 | AF8 |
+|---|---|---|---|---|
+| Épocas válidas antes | 9 % | 10 % | 75 % | 90 % |
+| Épocas válidas con ICA | 90 % | 90 % | 89 % | 94 % |
+| Beta que queda después de ICA | ×0,64 | ×0,51 | ×1,00 | ×0,99 |
+| Alfa que queda después de ICA | ×0,35 | ×0,39 | ×1,01 | ×0,99 |
+
+La potencia se compara en las épocas válidas en los dos casos. La fila de beta de TP9 y TP10 sale de los 14 sujetos con al menos 20 de esas épocas.
+
+Parece muy bueno por las épocas recuperadas, pero no conviene por tres razones:
+
+1. **Saca demasiada señal.** En TP9 y TP10 quita entre 36 y 49 % de beta, cuando las deflexiones aportan cerca de 13 a 21 %. Con 4 canales, la componente quitada es casi la señal común a TP9 y TP10 (correlación mediana cercana a 1), así que puede llevarse actividad cerebral. Sin un canal de EOG no se puede saber cuánta.
+2. **No es estable.** En A6 las épocas válidas de TP9 y TP10 caen a 0 %, y en A9 no mejoran (5 % y 1 %).
+3. **No hace falta para nuestras preguntas.** Beta ya funciona con `usable_beta`, y los frontales casi no cambian con ICA.
+
+Esto no demuestra que ICA sea malo en general: con 4 canales tiene muy poco para separar fuentes.
 
 **¿Son parpadeos de verdad?** No lo podemos asegurar, porque no hay canal de EOG. Lo que sabemos es que son simultáneos en TP9 y TP10, no están ligados al estímulo y son compatibles con parpadeos vistos a través de Fpz.
 
