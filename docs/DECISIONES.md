@@ -1,6 +1,6 @@
 # Decisiones del TPS – Grupo 13
 
-Este documento explica cada decisión del trabajo: qué se decidió, por qué y con qué evidencia. Sirve para escribir el informe y preparar la defensa. Cubre de la Parte 0 a lo hecho hasta ahora en la Parte 3. El detalle y las figuras están en los notebooks.
+Este documento explica cada decisión del trabajo: qué se decidió, por qué y con qué evidencia. Sirve para escribir el informe y preparar la defensa. Cubre de la Parte 0 a la Parte 3. El detalle y las figuras están en los notebooks.
 
 ## La idea del trabajo
 
@@ -24,7 +24,7 @@ EEG crudo de una sesión
   4. Recortar en épocas de 2 s (un ensayo cada una)
   5. Rechazar épocas con artefactos y excluir canales con picos angostos
   6. PSD de Welch por época y potencia por banda
-  7. Promediar por condición y comparar dentro de cada sujeto
+  7. Resumir cada condición con la mediana y comparar dentro de cada sujeto
 ```
 
 ## Parte 0 – Datos y sincronización
@@ -63,7 +63,7 @@ EEG crudo de una sesión
 - *Orden 4:* es el menor que deja plana la banda de 2 a 30 Hz (pérdida menor a 0,5 dB) y atenúa 38 dB en 60 Hz. El orden 2 pierde casi 2 dB en 30 Hz.
 - *filtfilt:* filtra ida y vuelta, así que no hay retardo que corra la señal respecto de los bloques.
 
-**Por qué un solo filtro.** La profe nos pidió no comparar filtros y profundizar en otras partes. Por eso se sacaron la comparación FIR contra IIR, Wiener y el notch.
+**Por qué un solo filtro.** La devolución de la profe nos sugirió ver si valía la pena comparar filtros, y usar ese tiempo para profundizar en otras partes. Por eso se sacaron la comparación FIR contra IIR, Wiener y el notch.
 
 **Residuo en A3-TP10.** En unos pocos canales el pico de 60 Hz no baja del todo, porque la interferencia está modulada cada 5 s y el LMS no llega a seguirla. Lo que queda es como máximo el 0,06 % de la potencia beta, así que no afecta el análisis.
 
@@ -88,7 +88,7 @@ EEG crudo de una sesión
 - `usable`: criterios sobre 1–40 Hz. Se usa para delta, theta y alfa.
 - `usable_beta`: criterios sobre 13–40 Hz. Se usa para beta.
 
-Con esto se conserva el 86 % de las épocas para beta y el 45 % para las otras bandas. Por eso **delta, theta y alfa se analizan en los canales frontales**: TP9 y TP10 sirven para esas bandas solo en 3 sujetos.
+Con esto se conserva cerca del 86 % de las épocas de tarea para beta y del 46 % para las otras bandas. Por eso **delta, theta y alfa se analizan en los canales frontales**: TP9 y TP10 sirven para esas bandas solo en 3 sujetos.
 
 **Por qué se excluyen canales por picos angostos.** Hay picos en 21,3 y 24 Hz, dentro de beta, de hasta 1000 veces el fondo. Son casi senoidales, así que los criterios por época no los detectan. Se mide qué fracción de beta aportan: la distribución tiene dos grupos (hasta 16 % y desde 30 %), y el umbral de 25 % los separa sin casos dudosos. Se excluyen A4-AF7, A9-AF8, B1-AF7, B1-TP9 y B5-AF7.
 
@@ -110,9 +110,10 @@ El origen no se pudo verificar. Una posibilidad es que la Muse transmite en paqu
 | Senoidal de 12 Hz que se cuenta como beta | 8,33 % | 0 % |
 | Error en delta (ruido blanco) | −4,7 % | −1,5 % |
 | Variación de beta en una época | 19,6 % | 23,6 % |
-| Variación de beta promediando 168 épocas | 1,39 % | 1,76 % |
+| Variación de beta en 168 épocas, con la media | 1,39 % | 1,76 % |
+| Variación de beta en 168 épocas, con la mediana | 1,70 % | 2,10 % |
 
-No puede ser más largo que 2 s, porque se metería en el ensayo siguiente. El costo es más varianza por época, pero se compensa al promediar. El promedio de Welch sigue estando: en lugar de promediar segmentos dentro de una época, se promedian las épocas válidas de cada condición. En el EEG de A1, theta, alfa y beta cambian como mucho un 4 % entre las dos opciones, así que los resultados no dependen de esta decisión.
+No puede ser más largo que 2 s, porque se metería en el ensayo siguiente. El costo es más varianza por época, que casi se compensa al resumir muchas épocas. Con el segmento igual a la época no hay solape, y se usa ventana de Hann para reducir la fuga. La reducción de varianza viene de resumir las épocas válidas de cada condición (ver la mediana más abajo). En el EEG de A1, theta, alfa y beta cambian como mucho un 4 % entre las dos opciones, así que los resultados no dependen de esta decisión.
 
 **Por qué la medida principal de beta es la potencia absoluta.** La potencia relativa divide por el total de 1 a 30 Hz, y ese total incluye las deflexiones. En TP9 de A1, la mediana de beta relativa pasa de 0,411 a 0,028 en las épocas con deflexión. Por eso:
 
@@ -132,9 +133,48 @@ No puede ser más largo que 2 s, porque se metería en el ensayo siguiente. El c
 
 **Tabla de potencias (`potencias.py`).** Cada medida usa sus propias épocas: `beta_abs` usa `usable_beta`, y las otras usan `usable`. La tabla rehace toda la cadena y da exactamente los mismos canales que el notebook 02: 18, 17, 19 y 18 sujetos en beta, y 3, 11, 17 y 3 en las bandas lentas (TP9, AF7, AF8 y TP10). Eso valida que no se perdió nada entre partes.
 
-Los cocientes se calculan después de promediar: cociente de medias, no media de cocientes.
+**Por qué la mediana es la medida principal.** Cada condición tiene unas 165 épocas, y hay que resumirlas en un valor. La media es lo que hace Welch clásico, pero una sola época con un artefacto que pasó el rechazo la mueve.
 
-**Media o mediana entre épocas: a definir en la Parte 5.** La media es el promedio de Welch, pero unas pocas épocas altas la empujan: es típicamente un 7 % mayor que la mediana, y hasta ×1,85. En el cociente 3-back / 1-back, las dos difieren un 3,5 % en la mitad de los casos y más de 17 % en un 5 % de los casos. La tabla guarda las dos.
+| Prueba con ruido blanco, grupos de 168 épocas | Media | Mediana |
+|---|---|---|
+| Variación entre grupos, sin artefactos | 1,79 % | 2,29 % |
+| Cambio si el 2 % de las épocas vale ×10 | +16,0 % | +0,5 % |
+| Cambio si el 5 % de las épocas vale ×10 | +42,6 % | +1,5 % |
+| Cambio si el 5 % de las épocas vale ×30 | +137,1 % | +1,5 % |
+
+- **Qué se gana:** unas pocas épocas no definen el resultado.
+- **Qué se paga:** un poco de precisión, porque con datos limpios la media varía menos.
+- **Por qué el intercambio conviene acá:** los datos no son limpios. En ruido blanco la media es 2,1 % mayor que la mediana, y en el EEG real es 7,2 % mayor, con casos de hasta ×1,85. Eso indica épocas altas que pasaron el rechazo. En el cociente 3-back / 1-back, las dos difieren más de 17 % en un 5 % de los casos.
+
+La media no se descarta: queda en la tabla como control. Si un efecto aparece con las dos, es más sólido.
+
+En las medidas que son cocientes (potencia relativa y theta/beta), el cociente se calcula por época y después se toma la mediana.
+
+**Por qué AR solo como verificación.** AR estima la PSD de otra forma: ajusta un modelo con Yule-Walker y la calcula a partir de los coeficientes. Si da lo mismo que Welch, el resultado no depende del método. Se probó con un proceso conocido: recuperó los coeficientes, y la integral de la PSD dio la varianza (87,92). No es el método principal porque usa 40 parámetros con 512 muestras por época, y porque el orden influye en el resultado.
+
+**Por qué orden 40 si AIC y BIC eligen 10 y 8.** El apunte pide dos cosas: minimizar el criterio y dejar un residuo aproximadamente blanco. Con orden 10 no se cumple la segunda:
+
+| Orden | Retardos del residuo fuera de la banda (5 % esperado) | Theta AR / Welch | Alfa | Beta |
+|---|---|---|---|---|
+| 10 | 28,0 % | ×1,014 | ×1,075 | ×1,027 |
+| 20 | 17,1 % | ×1,121 | ×0,940 | ×1,014 |
+| 30 | 12,9 % | ×1,105 | ×0,946 | ×1,004 |
+| 40 | 11,0 % | ×1,002 | ×0,995 | ×1,008 |
+
+Una explicación posible: la señal está muestreada a 256 Hz pero limitada a 40 Hz, así que 10 retardos cubren solo 39 ms, menos que un ciclo de theta. Con orden 40 el residuo todavía no es blanco del todo (11 %).
+
+Esta tabla compara la PSD media de 40 épocas por sujeto y canal. La de abajo compara medianas entre épocas, por eso theta y alfa dan distinto.
+
+**Resultado de la verificación.** En todas las épocas válidas de tarea de A3, B2, B4 y B9, con orden 40:
+
+| Banda | AR / Welch (mediana) | Diferencia en el cociente 3-back / 1-back: típica | Peor caso |
+|---|---|---|---|
+| Beta | ×1,009 | 2,5 % | 10 % |
+| Alfa | ×1,082 | 3,9 % | 15 % |
+| Theta | ×1,083 | 5,4 % | 23 % |
+| Delta | ×0,941 | 6,7 % | 35 % |
+
+La medida central, beta, no depende del método. Se probó en 4 sujetos, así que es una verificación y no una demostración para los 20. Delta es la que peor coincide, pero no entra en las hipótesis.
 
 ## Qué se corrigió del trabajo anterior
 
@@ -150,6 +190,8 @@ En la Parte 2 se cambió **solo texto**, no el código del rechazo:
 **No cambiaron** los umbrales, `usable_beta`, los canales excluidos ni los resultados del notebook 02.
 
 La medición original no estaba mal, pero se hizo en un solo sujeto, B1, que es de los que menos efecto tienen. Además, TP9 de B1 es un canal que después se excluye.
+
+También se corrigió una nota de `epocas.py` que sospechaba mal contacto en AF8. No se confirmó: AF8 es el canal que más sujetos conserva (19 en beta y 17 en las bandas lentas).
 
 ## Preguntas probables en la defensa
 
@@ -200,15 +242,12 @@ Esto no demuestra que ICA sea malo en general: con 4 canales tiene muy poco para
 
 **¿Son parpadeos de verdad?** No lo podemos asegurar, porque no hay canal de EOG. Lo que sabemos es que son simultáneos en TP9 y TP10, no están ligados al estímulo y son compatibles con parpadeos vistos a través de Fpz.
 
-**¿Por qué A9 da distinto que en el artículo?** A9 tiene canales muy malos: en beta solo se usan TP9 y AF7, y el artículo mira TP9 y TP10. La reproducción de ese sujeto es parcial.
+**¿Pudieron reproducir el análisis del artículo en A9?** Solo en parte. A9 tiene canales muy malos: en beta solo se usan TP9 y AF7, y el artículo mira TP9 y TP10.
 
 **¿Cómo saben que no es todo ruido?** El LMS y las funciones de potencia se probaron con señales de resultado conocido, y los umbrales se justifican con distribuciones medidas o valores habituales. Las comparaciones son dentro de cada sujeto y los canales frontales sirven de control.
 
 ## Pendientes
 
-- Terminar la Parte 3: verificación con AR.
-- Definir media o mediana para la Parte 5.
 - Parte 4: periodograma de Lomb.
 - Parte 5: estadística y relación entre beta y desempeño.
-- Corregir la nota sobre AF8 en `epocas.py`: decía que podía ser mal contacto, pero en B1 es de los canales más limpios.
-- Mergear la rama de la Parte 2 en `main`.
+- Mergear las ramas de las Partes 2 y 3 en `main`.

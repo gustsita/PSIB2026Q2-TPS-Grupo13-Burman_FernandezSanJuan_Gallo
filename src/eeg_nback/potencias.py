@@ -12,10 +12,10 @@ Qué épocas y canales usa cada medida (Parte 2 y Notebook 03, sección 3):
 Regla de canales (Parte 2): un canal se usa en un sujeto si conserva al menos el 50 % de
 sus épocas de tarea en cada sesión.
 
-Promedio: la potencia de una condición es la media de las épocas válidas, que es el
-promedio de Welch (la integral es lineal, así que da lo mismo promediar la PSD antes o
-la potencia después). Los cocientes se calculan después de promediar: cociente de medias,
-no media de cocientes.
+Valor de cada condición: la mediana entre las épocas válidas. Es la medida principal porque
+unas pocas épocas altas no la mueven (Notebook 03, sección 5.3). Los cocientes se calculan
+por época y después se toma la mediana. Como control se guarda también la media: en las
+potencias es el promedio de Welch, y en los cocientes es el cociente de las medias.
 """
 
 import numpy as np
@@ -76,27 +76,31 @@ def cobertura(tabla):
 def tabla_condiciones(tabla, bandas):
     """Una fila por sujeto, condición, tipo, canal y medida, en los canales que cumplen la regla.
 
-    Columnas: sujeto, experimento, condicion, tipo, canal, medida, valor (media entre
-    épocas), mediana (solo en las potencias absolutas) y n_epocas.
+    Columnas: sujeto, experimento, condicion, tipo, canal, medida, valor (mediana entre
+    épocas, la medida principal), media (control) y n_epocas.
     Medidas: <banda>_abs, <banda>_rel y theta_beta, con las épocas que indica el módulo.
     """
-    cob = cobertura(tabla)
     claves = ["sujeto", "experimento", "condicion", "tipo", "canal"]
-    t = tabla.join(cob.add_prefix("regla_"), on=["sujeto", "canal"])
+    t = tabla.join(cobertura(tabla).add_prefix("regla_"), on=["sujeto", "canal"])
 
-    beta = t[t["usable_beta"] & t["regla_beta"]].groupby(claves)
-    salida = [beta.agg(valor=("beta", "mean"), mediana=("beta", "median"), n_epocas=("beta", "size"))
-              .reset_index().assign(medida="beta_abs")]
+    beta = t[t["usable_beta"] & t["regla_beta"]].groupby(claves)["beta"]
+    salida = [beta.agg(valor="median", media="mean", n_epocas="size").reset_index()
+              .assign(medida="beta_abs")]
 
-    lentas = t[t["usable"] & t["regla_lentas"]].groupby(claves)
-    medias = lentas[[*bandas, "total"]].mean()
-    medianas = lentas[[*bandas]].median()
-    n = lentas.size()
-    calculadas = {f"{b}_rel": medias[b] / medias["total"] for b in bandas}
-    calculadas |= {f"{b}_abs": medias[b] for b in BANDAS_LENTAS}
-    calculadas["theta_beta"] = medias["theta"] / medias["beta"]
-    for medida, valor in calculadas.items():
-        mediana = medianas[medida[:-4]] if medida.endswith("_abs") else np.nan
-        salida.append(pd.DataFrame({"valor": valor, "mediana": mediana, "n_epocas": n})
+    x = t[t["usable"] & t["regla_lentas"]]
+    por_epoca = {f"{b}_abs": x[b] for b in BANDAS_LENTAS}
+    por_epoca |= {f"{b}_rel": x[b] / x["total"] for b in bandas}
+    por_epoca["theta_beta"] = x["theta"] / x["beta"]
+
+    grupos = x.groupby(claves)
+    medias = grupos[[*bandas, "total"]].mean()
+    control = {f"{b}_abs": medias[b] for b in BANDAS_LENTAS}
+    control |= {f"{b}_rel": medias[b] / medias["total"] for b in bandas}
+    control["theta_beta"] = medias["theta"] / medias["beta"]
+
+    n = grupos.size()
+    for medida, valores in por_epoca.items():
+        mediana = valores.groupby([x[c] for c in claves]).median()
+        salida.append(pd.DataFrame({"valor": mediana, "media": control[medida], "n_epocas": n})
                       .reset_index().assign(medida=medida))
     return pd.concat(salida, ignore_index=True)

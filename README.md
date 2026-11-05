@@ -88,23 +88,20 @@ sesiones = datos.tabla_sesiones(s.ruta)       # inicio y fin de cada sesión seg
 ## Plan de trabajo por módulos
 
 Cada parte es un módulo en `src/eeg_nback/` (las funciones) y un notebook (las pruebas,
-figuras y conclusiones). Los módulos traen la explicación del método y funciones con
-`TODO` para completar. `datos.py` ya está completo y probado con los sujetos B1 y A9.
-Se avanza de a una función por vez, con un commit cada una.
+figuras y conclusiones). Los módulos traen la explicación del método. `docs/DECISIONES.md`
+explica cada decisión del trabajo.
 
-| Parte | Módulo | Necesita | Entrega |
-|---|---|---|---|
-| 0 | `datos.py` + `00_exploracion` | datos | avances 27/10 |
-| 1 | `filtrado.py` | Parte 0 | avances 27/10 |
-| 2 | `epocas.py` | Parte 1 | avances 27/10 |
-| 3 | `espectro.py` | Parte 2 | avances 27/10 |
-| 4 | `dinamica.py` | Parte 3 | entrega 10/11 |
-| 5 | `estadistica.py` | Partes 3 y 0 (desempeño) | entrega 10/11 |
+| Parte | Módulo | Estado |
+|---|---|---|
+| 0 | `datos.py` + `00_exploracion` | Terminada |
+| 1 | `filtrado.py` + `01_filtrado` | Terminada |
+| 2 | `epocas.py` + `02_epocas_artefactos` | Terminada |
+| 3 | `espectro.py`, `potencias.py` + `03_ritmos` | Terminada |
+| 4 | `dinamica.py` + `04_lomb` | Falta (funciones con `TODO`) |
+| 5 | `estadistica.py` + `05_estadistica` | Falta (funciones con `TODO`) |
 
-Las Partes 1 y 2 pueden arrancar en paralelo: los criterios de artefactos se pueden
-explorar sobre la señal cruda mientras se diseña el filtrado. `potencia_banda` y
-`potencias` (Parte 3) y las funciones de la Parte 5 se pueden escribir y probar con
-datos sintéticos antes de tener las épocas.
+Las Partes 4 y 5 usan las tablas de `scripts/generar_potencias.py` y se pueden hacer en
+paralelo. El notebook 03 necesita además `scripts/generar_deflexiones.py`.
 
 ## Flujo de trabajo en Git
 

@@ -50,11 +50,10 @@ dentro de beta. Para cada sesión y canal se mide qué fracción de la potencia 
 aportan esos picos (fraccion_picos_beta); si supera `umbral_frac`, el canal no se usa
 en esa sesión (marcar_canales).
 
-Lo que ya se vio en B1 (para tenerlo en cuenta al elegir umbrales): AF7 tiene una PSD
-mucho mayor que los otros canales en todas las bandas y cerca del 0,7 % de sus muestras
-saturadas en las sesiones basal y perfume; AF8, en cambio, tiene una potencia en alfa
-unas 10 veces menor que TP9 y TP10. Puede ser mal contacto: hay que confirmarlo en
-todos los sujetos antes de decidir si se usa cada canal.
+La calidad depende mucho del canal y del sujeto. Por ejemplo, en B1 AF7 tiene una PSD
+mucho mayor que los otros canales y cerca del 0,7 % de sus muestras saturadas en las
+sesiones basal y perfume. AF8 tiene menos potencia, pero es el canal que más sujetos
+conserva (19 en beta y 17 en las bandas lentas).
 
 Los umbrales se eligen mirando las distribuciones de cada criterio (Notebook 02), no
 a ojo: se justifican con percentiles y se informa cuántas épocas descarta cada uno.
