@@ -1,9 +1,13 @@
 """Parte 3 – Ritmos cerebrales: densidad espectral de potencia y potencia por banda.
 
-Método principal: Welch. Divide cada época en segmentos con ventana (Hann) y solape,
-calcula el periodograma de cada uno y los promedia. Promediar reduce la varianza del
-estimador a costa de resolución en frecuencia (Δf = fs / nperseg). Con épocas de 2 s y
-nperseg = fs (1 s), Δf = 1 Hz, suficiente para separar las bandas.
+Método principal: Welch. Divide la señal en segmentos con ventana (Hann), calcula el
+periodograma de cada uno y los promedia. Promediar reduce la varianza del estimador a
+costa de resolución en frecuencia (Δf = fs / nperseg).
+
+Largo del segmento: 2 s (nperseg = 2·fs), o sea la época entera. La PSD se calcula por
+época y el promedio de Welch se hace entre las épocas válidas de cada condición. Con
+respecto a segmentos de 1 s: Δf = 0,5 Hz en lugar de 1 Hz, menos fuga entre bandas
+vecinas y menos sesgo en delta. Medido en el Notebook 03, sección 2.
 
 Verificación: modelo AR (Yule-Walker / Levinson-Durbin). Modela la señal como la salida
 de un filtro todo-polos excitado por ruido blanco; la PSD queda
@@ -22,7 +26,7 @@ from scipy import integrate, signal
 
 def psd_welch(x, fs, nperseg=None, solape=0.5):
     """PSD de Welch a lo largo del último eje. Devuelve (f, pxx) con pxx en µV²/Hz."""
-    nperseg = nperseg or int(fs)
+    nperseg = nperseg or int(2 * fs)
     return signal.welch(x, fs=fs, window="hann", nperseg=nperseg,
                         noverlap=int(nperseg * solape), axis=-1)
 
@@ -46,11 +50,23 @@ def potencia_banda(f, pxx, banda):
 
 
 def potencias(f, pxx, bandas, rango_total=(1, 30)):
-    """Dict con potencia absoluta y relativa de cada banda, y el cociente theta/beta.
+    """Potencia de cada banda y cocientes, integrando a lo largo del último eje.
 
-    TODO: usar potencia_banda para cada banda y para rango_total.
+    Devuelve un dict con <banda>_abs (µV²), <banda>_rel (fracción de la potencia en
+    rango_total) y theta_beta. Cada valor tiene la forma de pxx sin el eje de frecuencias.
+
+    Cuidado con qué épocas se usan: <banda>_rel y theta_beta incluyen las frecuencias
+    bajas, así que solo valen en épocas con `usable` (criterios sobre 1-40 Hz). En una
+    época que solo tiene `usable_beta`, una deflexión lenta infla el denominador: en TP9
+    de A1, beta_rel pasa de 0,41 a 0,03 (Notebook 03, sección 3). Ahí usar beta_abs.
     """
-    raise NotImplementedError
+    total = potencia_banda(f, pxx, rango_total)
+    salida = {}
+    for nombre, banda in bandas.items():
+        salida[f"{nombre}_abs"] = potencia_banda(f, pxx, banda)
+        salida[f"{nombre}_rel"] = salida[f"{nombre}_abs"] / total
+    salida["theta_beta"] = salida["theta_abs"] / salida["beta_abs"]
+    return salida
 
 
 def psd_ar(x, fs, orden, nfft=512):
