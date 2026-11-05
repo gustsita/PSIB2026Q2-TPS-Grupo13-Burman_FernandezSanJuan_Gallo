@@ -130,6 +130,12 @@ No puede ser más largo que 2 s, porque se metería en el ensayo siguiente. El c
 - En TP9 y TP10, un efecto menor al 6 % no se distingue de este sesgo. Los frontales sirven de control.
 - La profundidad de las deflexiones cambia en el experimento 2 (163 µV con perfume, 179 en basal, 191 con café; p = 0,002). Hay que tenerlo en cuenta al analizar el café en TP9 y TP10.
 
+**Tabla de potencias (`potencias.py`).** Cada medida usa sus propias épocas: `beta_abs` usa `usable_beta`, y las otras usan `usable`. La tabla rehace toda la cadena y da exactamente los mismos canales que el notebook 02: 18, 17, 19 y 18 sujetos en beta, y 3, 11, 17 y 3 en las bandas lentas (TP9, AF7, AF8 y TP10). Eso valida que no se perdió nada entre partes.
+
+Los cocientes se calculan después de promediar: cociente de medias, no media de cocientes.
+
+**Media o mediana entre épocas: a definir en la Parte 5.** La media es el promedio de Welch, pero unas pocas épocas altas la empujan: es típicamente un 7 % mayor que la mediana, y hasta ×1,85. En el cociente 3-back / 1-back, las dos difieren un 3,5 % en la mitad de los casos y más de 17 % en un 5 % de los casos. La tabla guarda las dos.
+
 ## Qué se corrigió del trabajo anterior
 
 En la Parte 2 se cambió **solo texto**, no el código del rechazo:
@@ -200,7 +206,8 @@ Esto no demuestra que ICA sea malo en general: con 4 canales tiene muy poco para
 
 ## Pendientes
 
-- Terminar la Parte 3: tabla de potencias por sujeto, condición y canal, y verificación con AR.
+- Terminar la Parte 3: verificación con AR.
+- Definir media o mediana para la Parte 5.
 - Parte 4: periodograma de Lomb.
 - Parte 5: estadística y relación entre beta y desempeño.
 - Corregir la nota sobre AF8 en `epocas.py`: decía que podía ser mal contacto, pero en B1 es de los canales más limpios.

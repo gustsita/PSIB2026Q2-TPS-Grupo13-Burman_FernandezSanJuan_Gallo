@@ -15,6 +15,7 @@ scripts/
     descargar_datos.py    # baja de PhysioNet solo los archivos que usamos
     check_env.py          # verifica dependencias, datos y sincronización
     generar_deflexiones.py # genera la tabla de la sección 4 del Notebook 03
+    generar_potencias.py  # genera las tablas de potencias (Notebook 03, Partes 4 y 5)
     prueba_ica.py         # prueba de ICA para las deflexiones (docs/DECISIONES.md)
 src/eeg_nback/
     config.py             # lee config.yaml
@@ -22,6 +23,7 @@ src/eeg_nback/
     filtrado.py           # Parte 1: pasa banda Butterworth + LMS para 60 Hz
     epocas.py             # Parte 2: recorte en realizaciones y rechazo de artefactos
     espectro.py           # Parte 3: PSD de Welch (y AR como verificación), potencia por banda
+    potencias.py          # Parte 3: tabla de potencias por sujeto, condición y canal
     dinamica.py           # Parte 4: periodograma de Lomb sobre la serie de potencia beta
     estadistica.py        # Parte 5: Wilcoxon / Friedman / Holm y relación beta-desempeño
 notebooks/                # un notebook por parte (00 = exploración y sincronización)
