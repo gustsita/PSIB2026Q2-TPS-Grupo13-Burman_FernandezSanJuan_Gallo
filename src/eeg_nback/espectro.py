@@ -30,9 +30,19 @@ def psd_welch(x, fs, nperseg=None, solape=0.5):
 def potencia_banda(f, pxx, banda):
     """Potencia absoluta (µV²) en `banda` = (f_min, f_max), integrando la PSD.
 
-    TODO: máscara (f >= f_min) & (f < f_max) e integrate.trapezoid sobre ese tramo.
+    Integra a lo largo del último eje, así que pxx puede ser un espectro o un array
+    (épocas × canales × frecuencias).
+
+    La máscara incluye los dos bordes. Con f < f_max el trapecio terminaría un bin antes
+    del límite: con Δf = 1 Hz, delta perdería el 37 % de su potencia y theta el 26 %
+    (medido con ruido blanco, Notebook 03). Incluyéndolos, las bandas contiguas se tocan
+    sin huecos ni solapamiento y su suma da la potencia total.
     """
-    raise NotImplementedError
+    f_min, f_max = banda
+    m = (f >= f_min) & (f <= f_max)
+    if m.sum() < 2:
+        raise ValueError(f"La banda {banda} tiene menos de 2 frecuencias con Δf = {f[1] - f[0]} Hz.")
+    return integrate.trapezoid(pxx[..., m], f[m], axis=-1)
 
 
 def potencias(f, pxx, bandas, rango_total=(1, 30)):
