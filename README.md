@@ -14,6 +14,7 @@ requirements.txt          # dependencias
 scripts/
     descargar_datos.py    # baja de PhysioNet solo los archivos que usamos
     check_env.py          # verifica dependencias, datos y sincronización
+    generar_deflexiones.py # genera la tabla de la sección 4 del Notebook 03
 src/eeg_nback/
     config.py             # lee config.yaml
     datos.py              # Parte 0: carga del EEG, sesiones, bloques y respuestas del n-back
@@ -25,7 +26,7 @@ src/eeg_nback/
 notebooks/                # un notebook por parte (00 = exploración y sincronización)
 data/raw/                 # datos (NO se suben a GitHub)
 outputs/                  # figuras y tablas generadas (no se suben)
-docs/                     # anteproyecto (versión entregada y versión revisada)
+docs/                     # anteproyecto y DECISIONES.md (cada decisión explicada)
 ```
 
 ## Puesta en marcha

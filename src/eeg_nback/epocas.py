@@ -29,13 +29,17 @@ Dos niveles de rechazo. En TP9 y TP10 hay deflexiones lentas de cientos de µV,
 simultáneas en los dos canales (en B1, en el 79 % de las épocas). Son compatibles con
 parpadeos vistos a través de la referencia Fpz: AF7 y AF8 están al lado de la
 referencia y el parpadeo casi se cancela; en los temporales aparece invertido. Esas
-deflexiones multiplican la potencia en delta y theta (×25 a ×140 en B1) pero no cambian
-la de beta (×0,9 a ×1,0), porque su energía está por debajo de 8 Hz. Entonces los
-criterios se calculan dos veces:
+deflexiones multiplican la potencia en delta y theta (×25 a ×140 en B1), porque su
+energía está sobre todo por debajo de 8 Hz. En beta el efecto es mucho menor pero no es
+nulo: en los 20 sujetos, las épocas con deflexión tienen un 15 % más de beta en TP9 y un
+21 % más en TP10 (mediana; B1, con ×0,9 a ×1,0, es de los casos con menos efecto). Como
+la proporción de épocas con deflexión no cambia entre condiciones, este aumento casi
+no altera las comparaciones dentro de cada sujeto: hasta 6 % en los cocientes entre
+condiciones (Notebook 03, sección 4). Por eso los criterios se calculan dos veces:
 - `valida`: sobre la señal de 1-40 Hz; es la que se usa para delta, theta y alfa;
 - `valida_beta`: sobre la misma cadena pero con pasa banda de 13-40 Hz; se usa para
   beta. Sigue detectando saturación, EMG y movimiento, pero no rechaza una época por
-  un parpadeo que no afecta a beta.
+  un parpadeo, que afecta poco a beta.
 Así beta no pierde las épocas de los canales temporales, que son los que el artículo
 usa para esa banda.
 
@@ -60,7 +64,7 @@ import numpy as np
 import pandas as pd
 from scipy import ndimage, signal, stats
 
-from . import datos, filtrado
+from . import datos, espectro, filtrado
 
 MOTIVOS = ("saturada", "pico_a_pico", "varianza", "curtosis", "plana")
 
@@ -262,3 +266,50 @@ def resumen_calidad(tabla):
     """Porcentaje de épocas válidas por canal (y por condición, si la tabla la tiene)."""
     claves = [c for c in ("condicion", "canal") if c in tabla]
     return (tabla.groupby(claves)["valida"].mean() * 100).rename("pct_validas").reset_index()
+
+
+def tabla_deflexiones(ruta, fs, canales, banda_beta, umbrales, umbral_frac=0.25,
+                      umbral_deflexion=100.0, ventana=0.25):
+    """Una fila por época y canal, para medir el efecto de las deflexiones sobre beta.
+
+    Columnas: sesion, condicion, bloque, tipo, canal, beta (µV²), usable, usable_beta,
+    usar, deflexion, profundidad (µV) y, en las épocas con deflexión, cerca y lejos: la
+    potencia de la señal de 13-40 Hz a menos de `ventana` s del mínimo y en el resto de
+    la época. Comparar cerca con lejos usa la misma época, así que no depende de que unas
+    épocas sean más ruidosas que otras.
+
+    La deflexión se detecta como en el Notebook 02: un mínimo de la media de TP9 y TP10
+    más de `umbral_deflexion` µV por debajo de la mediana de la época.
+    """
+    ep, info, canales_ses = epocas_sujeto(ruta, fs, canales, filtrado.disenar_pasabanda(fs))
+    ep_beta, _, _ = epocas_sujeto(ruta, fs, canales, filtrado.disenar_pasabanda(fs, 13, 40))
+    marcas = [marcar_artefactos(tabla_criterios(e, info, canales), **umbrales)
+                  .pivot(index="epoca", columns="canal", values="valida")
+              for e in (ep, ep_beta)]
+    canales_ses = marcar_canales(canales_ses, umbral_frac)
+
+    f, pxx = espectro.psd_welch(np.moveaxis(ep, 1, 2), fs)
+    beta = espectro.potencia_banda(f, pxx, banda_beta)
+
+    tp = (ep[:, :, canales.index("TP9")] + ep[:, :, canales.index("TP10")]) / 2
+    profundidad = np.median(tp, axis=1) - tp.min(axis=1)
+    deflexion = profundidad > umbral_deflexion
+    minimo = tp.argmin(axis=1)
+    k = int(ventana * fs)
+    n = ep.shape[1]
+
+    filas = []
+    for j, canal in enumerate(canales):
+        cerca = np.full(len(ep), np.nan)
+        lejos = np.full(len(ep), np.nan)
+        for e in np.flatnonzero(deflexion & (minimo >= k) & (minimo <= n - k)):
+            m = np.zeros(n, dtype=bool)
+            m[minimo[e] - k:minimo[e] + k] = True
+            cerca[e] = np.mean(ep_beta[e, m, j] ** 2)
+            lejos[e] = np.mean(ep_beta[e, ~m, j] ** 2)
+        usar = canales_ses[canales_ses["canal"] == canal].set_index("condicion")["usar"]
+        filas.append(info[["sesion", "condicion", "bloque", "tipo"]].assign(
+            canal=canal, beta=beta[:, j], usable=marcas[0][canal].to_numpy(),
+            usable_beta=marcas[1][canal].to_numpy(), usar=info["condicion"].map(usar).to_numpy(),
+            deflexion=deflexion, profundidad=profundidad, cerca=cerca, lejos=lejos))
+    return pd.concat(filas, ignore_index=True)
