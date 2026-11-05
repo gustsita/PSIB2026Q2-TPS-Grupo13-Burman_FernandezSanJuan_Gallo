@@ -6,6 +6,9 @@ pandas
 # Modelo AR (Yule-Walker) y estadística
 statsmodels
 
+# ICA (solo para scripts/prueba_ica.py)
+scikit-learn
+
 # Gráficos
 matplotlib
 

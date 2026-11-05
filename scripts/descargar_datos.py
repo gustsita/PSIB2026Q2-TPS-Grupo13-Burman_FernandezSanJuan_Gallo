@@ -39,11 +39,13 @@ def tamano_remoto(url):
 
 
 def bajar(url, destino, intentos=20):
-    """Baja url a destino. PhysioNet corta conexiones largas: si se corta, reintenta
-    continuando desde donde quedó (-C -) hasta que el archivo tenga el tamaño completo."""
+    """Baja url a destino. PhysioNet corta conexiones largas o las deja colgadas: si se
+    corta, o si pasa 1 minuto a menos de 1 kB/s, reintenta continuando desde donde quedó
+    (-C -) hasta que el archivo tenga el tamaño completo."""
     total = tamano_remoto(url)
     for intento in range(1, intentos + 1):
-        subprocess.run(["curl", "-L", "--fail", "-C", "-", "-#", "-o", str(destino), url])
+        subprocess.run(["curl", "-L", "--fail", "-C", "-", "-#", "--connect-timeout", "30",
+                        "--speed-limit", "1000", "--speed-time", "60", "-o", str(destino), url])
         actual = destino.stat().st_size if destino.exists() else 0
         if actual == total:
             return

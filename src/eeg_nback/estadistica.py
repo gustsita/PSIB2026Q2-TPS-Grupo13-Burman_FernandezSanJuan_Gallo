@@ -25,7 +25,7 @@ from scipy import stats
 from statsmodels.stats.multitest import multipletests
 
 
-def tabla_por_condicion(tabla_epocas, valor="beta_rel", agregado="median"):
+def tabla_por_condicion(tabla_epocas, valor="beta_abs", agregado="median"):
     """Pivot sujeto × condición con el valor agregado de las épocas válidas.
 
     TODO: filtrar valida == True, groupby(["sujeto", "condicion"])[valor].agg(agregado)

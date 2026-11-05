@@ -7,8 +7,8 @@ muestreada en forma irregular y no se le puede aplicar la FFT directamente.
 El periodograma de Lomb-Scargle ajusta, para cada frecuencia, una senoidal por mínimos
 cuadrados usando solo los instantes donde hay dato, así que no necesita interpolar.
 
-Qué se espera encontrar: la tarea alterna bloques de unos 44 s (22 estímulos × 2 s) con
-pausas de unos 17-19 s, es decir un ciclo de ~60 s (≈ 0,017 Hz). Si la potencia beta
+Qué se espera encontrar: la tarea alterna bloques de unos 43 s (22 estímulos × 2 s) con
+pausas de unos 15 s, es decir un ciclo de unos 58 s (≈ 0,017 Hz). Si la potencia beta
 sube durante la tarea y baja en las pausas, el periodograma debería tener un pico cerca
 de esa frecuencia.
 
