@@ -1,6 +1,6 @@
 # Decisiones del TPS – Grupo 13
 
-Este documento explica cada decisión del trabajo: qué se decidió, por qué y con qué evidencia. Sirve para escribir el informe y preparar la defensa. Cubre de la Parte 0 a la Parte 4. El detalle y las figuras están en los notebooks.
+Este documento explica cada decisión del trabajo: qué se decidió, por qué y con qué evidencia. Sirve para escribir el informe y preparar la defensa. Cubre de la Parte 0 a la Parte 5. El detalle y las figuras están en los notebooks.
 
 ## La idea del trabajo
 
@@ -230,6 +230,45 @@ Por azar se esperaría un 5 % de series con p < 0,05; la prueba binomial da p < 
 
 **Cómo se interpreta.** Hay dos explicaciones que no se excluyen: artefactos en la pausa (parpadeos, mandíbula, movimiento) y una disminución real de beta durante la tarea, asociada a apretar un botón cada 2 s. Con 4 canales y sin EOG ni EMG no se pueden separar. Lo que sí se puede afirmar es que beta no sube en la tarea. La Parte 5 prueba la diferencia tarea-pausa con Wilcoxon, y conviene hacerla también con las épocas sin deflexión.
 
+## Parte 5 – Estadística y desempeño
+
+**Unidad de análisis: un valor por sujeto y condición.** Es la mediana de beta de sus épocas válidas en esa condición, como en la Parte 3. Las pruebas se hacen sobre los sujetos y no sobre las épocas, porque las épocas de una misma sesión no son independientes (Parte 4) y usarlas como muestras daría p-valores demasiado chicos. Una celda sujeto × condición cuenta si tiene al menos 20 épocas válidas, el mismo mínimo de la Parte 4.
+
+**Por qué Wilcoxon y Friedman.** Son las pruebas pareadas no paramétricas del anteproyecto. Con unos 10 sujetos no se puede verificar la normalidad, y la potencia es asimétrica. Wilcoxon compara dos condiciones del mismo sujeto (1-back y 3-back, tarea y pausa); Friedman compara las 3 o 4 sesiones de un experimento.
+
+**Por qué Holm por familia.** Se corrige dentro de cada grupo de pruebas que responde a una misma pregunta: los 4 canales de una comparación, o las sesiones de un mismo canal contra la sesión sin estímulo. Corregir todo el trabajo junto dejaría sin potencia a pruebas que responden preguntas distintas. Holm controla lo mismo que Bonferroni y es menos conservador.
+
+**Por qué los pares contra la sesión sin estímulo se informan aunque Friedman no dé significativo.** Son las comparaciones planeadas en el anteproyecto (cada estímulo contra la sesión sin estímulo), no una búsqueda a posteriori. Se interpretan junto con Friedman.
+
+**Qué puede detectar.** Con 10 sujetos y la variación entre sujetos medida en el EEG (desvío de 0,04 a 0,06 en log10 del cociente), un cambio de ×1,10 se detecta en el 57 % de los casos y uno de ×1,05 en el 20 %. Sin efecto, la prueba da 5,4 % de falsos positivos. Un resultado no significativo no demuestra que no haya efecto, sobre todo si es menor al 10 %.
+
+**Reproducción en A9 y B9.** Con un solo sujeto no hay pares, así que se comparan las épocas de cada sesión con Mann-Whitney. El p-valor es orientativo por la correlación entre épocas; lo que se informa es el cociente.
+
+**Desempeño: por qué el bloque y por qué centrar.** Por sesión habría 3 o 4 puntos por sujeto, muy pocos para ver una curva. Por bloque hay hasta 64. El nivel de beta depende del contacto del electrodo y los aciertos dependen del sujeto y de la dificultad, así que log10(beta), aciertos y tiempo de reacción se pasan a z-score dentro de cada sujeto, canal y tipo de bloque. Sin eso, la relación mezclaría diferencias entre personas.
+
+**Desempeño: por qué dos pruebas.** El ajuste con todos los bloques juntos (lineal contra cuadrático, AIC) usa bloques que no son independientes, así que sus p-valores son orientativos. La prueba principal ajusta el modelo cuadrático en cada sujeto y prueba con Wilcoxon si el coeficiente c es distinto de 0: cada sujeto aporta un solo valor.
+
+**Resultados.**
+
+| Pregunta | Resultado |
+|---|---|
+| A9: música | beta sube ×1,5 a ×2,5 en TP9, como en el artículo (que informa +27 a +47 %) |
+| B9: perfume | beta baja ×0,35 a ×0,52, como en el artículo; con café también baja (×0,70) |
+| Tarea contra pausa | beta menor en la tarea en TP9 y TP10 (×0,82 y ×0,84; p corregido 0,003); sin deflexiones ×0,91 y ×0,94, significativo solo en TP9 |
+| 3-back contra 1-back, theta frontal | sube ×1,21 (AF7) y ×1,18 (AF8), p corregido 0,013 |
+| 3-back contra 1-back, alfa frontal | no baja; en AF7 sube ×1,06 (p corregido 0,014) |
+| 3-back contra 1-back, beta | no cambia (×0,96 a ×0,99) |
+| Música (grupo) | no cambia beta (Friedman p > 0,2) |
+| Perfume (grupo) | no cambia beta |
+| Café (grupo) | beta tiende a subir (×1,2 a ×1,7; Friedman p = 0,03 en TP9 y AF7, 0,13 con Holm); igual sin deflexiones en los frontales; theta/beta no baja |
+| Beta contra desempeño | no hay U invertida; relación lineal débil y negativa con los aciertos en TP9 y TP10 |
+
+**El orden de las sesiones es fijo.** Los 20 sujetos hicieron las sesiones en el mismo orden (sin música, relajante, estimulante, IA; basal, perfume, café). Cualquier diferencia entre sesiones puede deberse al estímulo o al paso del tiempo: cambio de contacto de los electrodos secos, cansancio o práctica. Esto pesa sobre todo en dos resultados:
+- en el experimento 1, el desempeño en el 3-back mejora entre sesiones (aciertos de 81 % sin música a 83-88 % con música; p corregido 0,022), lo que es compatible con práctica;
+- el café es siempre la última sesión, después de 30 min de descanso.
+
+**Cómo se interpreta.** Lo que el artículo muestra en un sujeto se reproduce en ese sujeto, pero no se generaliza: a nivel de grupo, la música y el perfume no cambian beta, y el café solo muestra una tendencia. El desempeño cambia entre sesiones sin que beta lo acompañe. El marcador que sí responde a la carga cognitiva es theta frontal, no beta.
+
 ## Qué se corrigió del trabajo anterior
 
 En la Parte 2 se cambió **solo texto**, no el código del rechazo:
@@ -296,10 +335,16 @@ Esto no demuestra que ICA sea malo en general: con 4 canales tiene muy poco para
 
 **¿Son parpadeos de verdad?** No lo podemos asegurar, porque no hay canal de EOG. Lo que sabemos es que son simultáneos en TP9 y TP10, no están ligados al estímulo y son compatibles con parpadeos vistos a través de Fpz.
 
-**¿Pudieron reproducir el análisis del artículo en A9?** Solo en parte. A9 tiene canales muy malos: en beta solo se usan TP9 y AF7, y el artículo mira TP9 y TP10.
+**¿Pudieron reproducir el análisis del artículo en A9?** En la dirección, sí: beta sube con los tres tipos de música (×1,5 a ×2,5 en TP9). Pero A9 tiene canales muy malos: en beta solo se usan TP9 y AF7, y el artículo mira TP9 y TP10. Además, en AF7 la sesión sin música tiene una beta muy baja, lo que sugiere un cambio de contacto, y en el resto de los sujetos el efecto no aparece.
+
+**¿Por qué no hicieron las pruebas sobre las épocas, que son muchas más?** Porque las épocas de una misma sesión están correlacionadas en el tiempo (la Parte 4 muestra el ciclo tarea-pausa) y no son muestras independientes. Con cientos de épocas casi cualquier diferencia da significativa. La pregunta es si el efecto se repite en las personas, así que la unidad es el sujeto.
+
+**Si no encontraron efecto de la música, ¿quiere decir que no hay?** No. Con 8 o 9 sujetos con todas las sesiones, un efecto menor al 10 % no se puede detectar. Sí se puede decir que no hay un aumento del tamaño que informa el artículo para A9 (27 a 47 %), porque eso se vería.
+
+**¿El café aumenta beta?** Hay una tendencia (7 de 10 sujetos en AF8, ×1,5), pero no es significativa después de corregir por los 4 canales. Además, el café es siempre la última sesión, así que no se puede separar del momento del registro.
 
 **¿Cómo saben que no es todo ruido?** El LMS y las funciones de potencia se probaron con señales de resultado conocido, y los umbrales se justifican con distribuciones medidas o valores habituales. Las comparaciones son dentro de cada sujeto y los canales frontales sirven de control.
 
 ## Pendientes
 
-- Parte 5: estadística y relación entre beta y desempeño.
+- Informe final.
