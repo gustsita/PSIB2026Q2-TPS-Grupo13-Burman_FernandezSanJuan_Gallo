@@ -1,6 +1,6 @@
 # Decisiones del TPS – Grupo 13
 
-Este documento explica cada decisión del trabajo: qué se decidió, por qué y con qué evidencia. Sirve para escribir el informe y preparar la defensa. Cubre de la Parte 0 a la Parte 3. El detalle y las figuras están en los notebooks.
+Este documento explica cada decisión del trabajo: qué se decidió, por qué y con qué evidencia. Sirve para escribir el informe y preparar la defensa. Cubre de la Parte 0 a la Parte 4. El detalle y las figuras están en los notebooks.
 
 ## La idea del trabajo
 
@@ -176,6 +176,60 @@ Esta tabla compara la PSD media de 40 épocas por sujeto y canal. La de abajo co
 
 La medida central, beta, no depende del método. Se probó en 4 sujetos, así que es una verificación y no una demostración para los 20. Delta es la que peor coincide, pero no entra en las hipótesis.
 
+## Parte 4 – Evolución temporal de beta (Lomb)
+
+**Qué se busca.** Si beta sube en la tarea y baja en la pausa, la serie de beta de una sesión tiene un ciclo de unos 58 s (≈ 0,017 Hz): bloques de unos 43 s y pausas de unos 15 s. La frecuencia del ciclo se mide en cada sesión con la mediana entre inicios de bloque, en lugar de suponerla.
+
+**Por qué Lomb.** Hay un valor de beta cada 2 s, pero las épocas rechazadas dejan huecos y la serie deja de estar equiespaciada. Es el mismo problema que los intervalos RR en HRV, donde se vio el método en clase. Lomb ajusta una senoidal por mínimos cuadrados en cada frecuencia usando solo los instantes con dato. Normalizado, da la fracción de la varianza de la serie que explica cada frecuencia.
+
+**Verificación.** Sin huecos, Lomb coincide con el periodograma de la FFT en las frecuencias de la FFT (correlación 1,0000). Con huecos agrupados, como los de las épocas rechazadas, se comparó con interpolar con cubic splines y aplicar Welch, en 300 series sintéticas con un ciclo de 58 s:
+
+| | 0 % de huecos | 20 % | 40 % |
+|---|---|---|---|
+| Lomb: máximo en el ciclo | 100,0 % | 99,7 % | 98,0 % |
+| Splines + Welch: máximo en el ciclo | 88,0 % | 22,0 % | 11,0 % |
+| Lomb: potencia por debajo de 0,01 Hz | 6,1 % | 7,3 % | 8,1 % |
+| Splines + Welch: potencia por debajo de 0,01 Hz | 5,4 % | 29,4 % | 41,2 % |
+
+La interpolación rellena los huecos largos con curvas lentas que no existen: con 20 % de huecos, casi un tercio de la potencia queda por debajo de 0,01 Hz y el máximo deja de estar en el ciclo. Sin huecos, Welch acierta menos solo por su resolución (Δf = 0,004 Hz con segmentos de 256 s).
+
+**Por qué log10 de beta.** La potencia de una época es asimétrica (Parte 3) y el ajuste por mínimos cuadrados es sensible a los valores altos: unas pocas épocas dominarían el periodograma, el mismo problema que llevó a usar la mediana. En log, un cambio de ×1,2 pesa igual en cualquier sujeto o canal.
+
+**Por qué se resta la tendencia lineal.** Una deriva lenta a lo largo de la sesión (cansancio, contacto del electrodo) pone potencia en las frecuencias más bajas, cerca del ciclo. En series sin ciclo con una deriva de 0,2 en log10, los falsos positivos suben a 11,0 % si no se resta la tendencia, y vuelven a 5,5 % si se resta.
+
+**Por qué permutación.** La fórmula clásica de la probabilidad de falsa alarma supone ruido gaussiano e independiente. La permutación reordena los valores sobre los mismos instantes: conserva los huecos y la distribución de valores y destruye el orden temporal. En 200 series sin ciclo dio p < 0,05 en el 5,5 % (se espera 5 %).
+
+**Qué puede detectar.** Con una sesión de 16 min y 20 % de huecos, la prueba detecta un cambio tarea-pausa de ±4,7 % en el 64,5 % de las series, de ±7,2 % en el 94,5 % y de ±12,2 % en todas. Un cambio de ±2,3 % se detecta solo en el 18,5 %.
+
+**Qué no dice Lomb.** El periodograma no distingue si beta es mayor en la tarea o en la pausa (una senoidal tiene la misma potencia con cualquier fase). El sentido se mira con el cociente tarea / pausa, y la prueba estadística es de la Parte 5.
+
+**Resultados en el EEG.** Se analizaron 257 de las 263 series (sujeto, sesión y canal); las otras 6 tienen menos de 200 épocas válidas. El ciclo medido va de 55,9 a 59,3 s (mediana 58,9 s).
+
+| Canal | Series | Sujetos | p < 0,05 | Varianza explicada en el ciclo (mediana) | Cociente tarea/pausa en las series significativas |
+|---|---|---|---|---|---|
+| AF7 | 60 | 17 | 53,3 % | 1,9 % | 0,91 |
+| AF8 | 66 | 19 | 53,0 % | 1,7 % | 1,01 |
+| TP9 | 66 | 19 | 77,3 % | 5,6 % | 0,80 |
+| TP10 | 65 | 19 | 80,0 % | 4,9 % | 0,81 |
+
+Por azar se esperaría un 5 % de series con p < 0,05; la prueba binomial da p < 0,001 en los cuatro canales, y los 20 sujetos tienen al menos una serie significativa. El ciclo tarea-pausa está en la serie de beta, sobre todo en TP9 y TP10. Pero el sentido es el contrario al esperado: en los temporales beta es menor en la tarea.
+
+**Las deflexiones explican parte de esa diferencia.** La Parte 3 había comparado las deflexiones entre 1-back y 3-back, no entre tarea y pausa:
+
+| | AF7 | AF8 | TP9 | TP10 |
+|---|---|---|---|---|
+| Épocas con deflexión en la pausa | 27,4 % | 27,2 % | 77,8 % | 78,5 % |
+| Épocas con deflexión en la tarea | 22,8 % | 14,4 % | 76,1 % | 75,3 % |
+| Cociente tarea/pausa, todas las épocas `usable_beta` | 0,947 | 1,029 | 0,801 | 0,840 |
+| Cociente tarea/pausa, solo épocas sin deflexión | 0,994 | 1,029 | 0,910 | 0,936 |
+| Sujetos en la última fila | 17 | 19 | 15 | 16 |
+
+- En los frontales hay más deflexiones en la pausa, compatible con que se parpadea más fuera de la tarea.
+- En TP9 y TP10 la cantidad es casi igual, pero al sacar las épocas con deflexión el cociente se acerca a 1: las deflexiones de la pausa aportan más beta que las de la tarea.
+- En épocas limpias queda una reducción de 6 a 9 % en los temporales, y ningún cambio en los frontales.
+
+**Cómo se interpreta.** Hay dos explicaciones que no se excluyen: artefactos en la pausa (parpadeos, mandíbula, movimiento) y una disminución real de beta durante la tarea, asociada a apretar un botón cada 2 s. Con 4 canales y sin EOG ni EMG no se pueden separar. Lo que sí se puede afirmar es que beta no sube en la tarea. La Parte 5 prueba la diferencia tarea-pausa con Wilcoxon, y conviene hacerla también con las épocas sin deflexión.
+
 ## Qué se corrigió del trabajo anterior
 
 En la Parte 2 se cambió **solo texto**, no el código del rechazo:
@@ -248,6 +302,4 @@ Esto no demuestra que ICA sea malo en general: con 4 canales tiene muy poco para
 
 ## Pendientes
 
-- Parte 4: periodograma de Lomb.
 - Parte 5: estadística y relación entre beta y desempeño.
-- Mergear las ramas de las Partes 2 y 3 en `main`.
