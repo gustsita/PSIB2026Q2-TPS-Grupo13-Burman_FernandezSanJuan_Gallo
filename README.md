@@ -97,7 +97,7 @@ explica cada decisión del trabajo.
 | 1 | `filtrado.py` + `01_filtrado` | Terminada |
 | 2 | `epocas.py` + `02_epocas_artefactos` | Terminada |
 | 3 | `espectro.py`, `potencias.py` + `03_ritmos` | Terminada |
-| 4 | `dinamica.py` + `04_lomb` | Código y verificación listos; falta correr con los datos |
+| 4 | `dinamica.py` + `04_lomb` | Lista |
 | 5 | `estadistica.py` + `05_estadistica` | Falta (funciones con `TODO`) |
 
 Las Partes 4 y 5 usan las tablas de `scripts/generar_potencias.py` y se pueden hacer en

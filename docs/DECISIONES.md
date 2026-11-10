@@ -203,7 +203,32 @@ La interpolación rellena los huecos largos con curvas lentas que no existen: co
 
 **Qué no dice Lomb.** El periodograma no distingue si beta es mayor en la tarea o en la pausa (una senoidal tiene la misma potencia con cualquier fase). El sentido se mira con el cociente tarea / pausa, y la prueba estadística es de la Parte 5.
 
-**Resultados en el EEG.** *Completar con las secciones 3 y 4 del notebook 04.*
+**Resultados en el EEG.** Se analizaron 257 de las 263 series (sujeto, sesión y canal); las otras 6 tienen menos de 200 épocas válidas. El ciclo medido va de 55,9 a 59,3 s (mediana 58,9 s).
+
+| Canal | Series | Sujetos | p < 0,05 | Varianza explicada en el ciclo (mediana) | Cociente tarea/pausa en las series significativas |
+|---|---|---|---|---|---|
+| AF7 | 60 | 17 | 53,3 % | 1,9 % | 0,91 |
+| AF8 | 66 | 19 | 53,0 % | 1,7 % | 1,01 |
+| TP9 | 66 | 19 | 77,3 % | 5,6 % | 0,80 |
+| TP10 | 65 | 19 | 80,0 % | 4,9 % | 0,81 |
+
+Por azar se esperaría un 5 % de series con p < 0,05; la prueba binomial da p < 0,001 en los cuatro canales, y los 20 sujetos tienen al menos una serie significativa. El ciclo tarea-pausa está en la serie de beta, sobre todo en TP9 y TP10. Pero el sentido es el contrario al esperado: en los temporales beta es menor en la tarea.
+
+**Las deflexiones explican parte de esa diferencia.** La Parte 3 había comparado las deflexiones entre 1-back y 3-back, no entre tarea y pausa:
+
+| | AF7 | AF8 | TP9 | TP10 |
+|---|---|---|---|---|
+| Épocas con deflexión en la pausa | 27,4 % | 27,2 % | 77,8 % | 78,5 % |
+| Épocas con deflexión en la tarea | 22,8 % | 14,4 % | 76,1 % | 75,3 % |
+| Cociente tarea/pausa, todas las épocas `usable_beta` | 0,947 | 1,029 | 0,801 | 0,840 |
+| Cociente tarea/pausa, solo épocas sin deflexión | 0,994 | 1,029 | 0,910 | 0,936 |
+| Sujetos en la última fila | 17 | 19 | 15 | 16 |
+
+- En los frontales hay más deflexiones en la pausa, compatible con que se parpadea más fuera de la tarea.
+- En TP9 y TP10 la cantidad es casi igual, pero al sacar las épocas con deflexión el cociente se acerca a 1: las deflexiones de la pausa aportan más beta que las de la tarea.
+- En épocas limpias queda una reducción de 6 a 9 % en los temporales, y ningún cambio en los frontales.
+
+**Cómo se interpreta.** Hay dos explicaciones que no se excluyen: artefactos en la pausa (parpadeos, mandíbula, movimiento) y una disminución real de beta durante la tarea, asociada a apretar un botón cada 2 s. Con 4 canales y sin EOG ni EMG no se pueden separar. Lo que sí se puede afirmar es que beta no sube en la tarea. La Parte 5 prueba la diferencia tarea-pausa con Wilcoxon, y conviene hacerla también con las épocas sin deflexión.
 
 ## Qué se corrigió del trabajo anterior
 
