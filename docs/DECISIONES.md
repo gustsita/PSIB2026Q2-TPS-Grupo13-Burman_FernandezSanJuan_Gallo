@@ -1,6 +1,6 @@
 # Decisiones del TPS – Grupo 13
 
-Este documento explica cada decisión del trabajo: qué se decidió, por qué y con qué evidencia. Sirve para escribir el informe y preparar la defensa. Cubre de la Parte 0 a la Parte 5. El detalle y las figuras están en los notebooks.
+Este documento explica cada decisión del trabajo: qué se decidió, por qué y con qué evidencia. Cubre de la Parte 0 a la Parte 5. El detalle y las figuras están en los notebooks.
 
 ## La idea del trabajo
 
@@ -63,7 +63,7 @@ EEG crudo de una sesión
 - *Orden 4:* es el menor que deja plana la banda de 2 a 30 Hz (pérdida menor a 0,5 dB) y atenúa 38 dB en 60 Hz. El orden 2 pierde casi 2 dB en 30 Hz.
 - *filtfilt:* filtra ida y vuelta, así que no hay retardo que corra la señal respecto de los bloques.
 
-**Por qué un solo filtro.** La devolución de la profe nos sugirió ver si valía la pena comparar filtros, y usar ese tiempo para profundizar en otras partes. Por eso se sacaron la comparación FIR contra IIR, Wiener y el notch.
+**Por qué un solo filtro.** La devolución de la cátedra al anteproyecto sugirió no comparar filtros y usar ese tiempo para profundizar en otras partes. Por eso se sacaron la comparación FIR contra IIR, Wiener y el notch.
 
 **Residuo en A3-TP10.** En unos pocos canales el pico de 60 Hz no baja del todo, porque la interferencia está modulada cada 5 s y el LMS no llega a seguirla. Lo que queda es como máximo el 0,06 % de la potencia beta, así que no afecta el análisis.
 
@@ -97,6 +97,8 @@ El origen no se pudo verificar. Una posibilidad es que la Muse transmite en paqu
 **Regla de canales.** Un canal se usa en un sujeto si conserva al menos el 50 % de sus épocas de tarea en cada sesión. Si no, las condiciones no se podrían comparar dentro del sujeto.
 
 **El rechazo no sesga la comparación de carga.** El porcentaje de épocas usables no difiere entre 1-back y 3-back (Wilcoxon, p > 0,3).
+
+**Los auriculares no empeoran los canales temporales.** El anteproyecto planteaba que los auriculares de las sesiones con música podían afectar el contacto de TP9 y TP10. En el experimento 1, para beta, TP9 conserva el 86 % de las épocas de tarea sin música y el 90 % con música, y TP10 el 90 % en los dos casos (Wilcoxon, p ≥ 0,30). Por eso no hizo falta restringir el análisis a los canales frontales.
 
 ## Parte 3 – Espectro
 
@@ -286,11 +288,9 @@ La medición original no estaba mal, pero se hizo en un solo sujeto, B1, que es 
 
 También se corrigió una nota de `epocas.py` que sospechaba mal contacto en AF8. No se confirmó: AF8 es el canal que más sujetos conserva (19 en beta y 17 en las bandas lentas).
 
-## Preguntas probables en la defensa
+## Por qué no se usa ICA para las deflexiones
 
-**¿Por qué no usaron ICA para sacar los parpadeos?**
-
-> Probamos ICA en los 20 sujetos. Recuperaba épocas en TP9 y TP10, pero quitaba entre 36 y 49 % de beta, más de lo que aportan las deflexiones, y con 4 canales no podíamos asegurar que no estuviéramos sacando actividad cerebral. Por eso lo descartamos y usamos el rechazo de épocas.
+Se probó ICA en los 20 sujetos. Recuperaba épocas en TP9 y TP10, pero quitaba entre 36 y 49 % de beta, más de lo que aportan las deflexiones, y con 4 canales no se puede asegurar que no se esté sacando actividad cerebral. Por eso se descartó y se usa el rechazo de épocas.
 
 La prueba está en `scripts/prueba_ica.py`. No forma parte del pipeline: solo respalda esta decisión.
 
@@ -312,7 +312,7 @@ Es como grabar una fiesta con 4 micrófonos: cada uno capta a todos, pero con di
 
 No hay que confundirlo con el promediado de potenciales evocados, que se vio en clase. El promediado usa muchas repeticiones de un mismo estímulo; ICA usa varios canales al mismo tiempo y trabaja sobre la señal continua.
 
-*Qué probamos.*
+*Qué se probó.*
 
 Se anuló en cada sesión la componente más correlacionada con la media de TP9 y TP10:
 
@@ -332,19 +332,3 @@ Parece muy bueno por las épocas recuperadas, pero no conviene por tres razones:
 3. **No hace falta para nuestras preguntas.** Beta ya funciona con `usable_beta`, y los frontales casi no cambian con ICA.
 
 Esto no demuestra que ICA sea malo en general: con 4 canales tiene muy poco para separar fuentes.
-
-**¿Son parpadeos de verdad?** No lo podemos asegurar, porque no hay canal de EOG. Lo que sabemos es que son simultáneos en TP9 y TP10, no están ligados al estímulo y son compatibles con parpadeos vistos a través de Fpz.
-
-**¿Pudieron reproducir el análisis del artículo en A9?** En la dirección, sí: beta sube con los tres tipos de música (×1,5 a ×2,5 en TP9). Pero A9 tiene canales muy malos: en beta solo se usan TP9 y AF7, y el artículo mira TP9 y TP10. Además, en AF7 la sesión sin música tiene una beta muy baja, lo que sugiere un cambio de contacto, y en el resto de los sujetos el efecto no aparece.
-
-**¿Por qué no hicieron las pruebas sobre las épocas, que son muchas más?** Porque las épocas de una misma sesión están correlacionadas en el tiempo (la Parte 4 muestra el ciclo tarea-pausa) y no son muestras independientes. Con cientos de épocas casi cualquier diferencia da significativa. La pregunta es si el efecto se repite en las personas, así que la unidad es el sujeto.
-
-**Si no encontraron efecto de la música, ¿quiere decir que no hay?** No. Con 8 o 9 sujetos con todas las sesiones, un efecto menor al 10 % no se puede detectar. Sí se puede decir que no hay un aumento del tamaño que informa el artículo para A9 (27 a 47 %), porque eso se vería.
-
-**¿El café aumenta beta?** Hay una tendencia (7 de 10 sujetos en AF8, ×1,5), pero no es significativa después de corregir por los 4 canales. Además, el café es siempre la última sesión, así que no se puede separar del momento del registro.
-
-**¿Cómo saben que no es todo ruido?** El LMS y las funciones de potencia se probaron con señales de resultado conocido, y los umbrales se justifican con distribuciones medidas o valores habituales. Las comparaciones son dentro de cada sujeto y los canales frontales sirven de control.
-
-## Pendientes
-
-- Informe final.
