@@ -36,12 +36,30 @@ docs/                     # anteproyecto y DECISIONES.md (cada decisión explica
 
 Requiere Python 3.10 o superior.
 
+macOS / Linux:
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python scripts/check_env.py
 ```
+
+Windows (PowerShell):
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python scripts/check_env.py
+```
+
+Si PowerShell no deja correr `Activate.ps1`, ejecutar antes
+`Set-ExecutionPolicy -Scope Process Bypass`.
+
+Orden para reproducir todo: `scripts/descargar_datos.py`, `scripts/check_env.py`,
+`scripts/generar_potencias.py` y `scripts/generar_deflexiones.py`, y después los notebooks
+de `00` a `05`.
 
 Para Jupyter / VS Code, elegir el kernel `.venv` (o registrarlo con
 `python -m ipykernel install --user --name psib-tps-g13 --display-name "PSIB TPS Grupo 13"`).
